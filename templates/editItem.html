@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<form action="{{url_for('editCategoryItem', category_id=category_id, items_id=items_id)}}" method="POST">
+  <div class="container">
+    <h1>Edit Item</h1>
+      <div class="form-group">
+          <p>Item:</p>
+            <input type="text" class="col-sm-3 col-sm-5" name='name' placeholder="{{items.name}}">
+            </br></br>
+            <p>Description:</p>
+              <input type="text" class="col-sm-3 col-sm-5" name='description' placeholder="{{items.description}}">
+            </br></br>
+            <input type="submit" value="Edit">
+            </br></br>
+          <a href="{{url_for('showCategoryItems', category_id=category_id, items_id=items_id)}}">Cancel</a>
+      </div>
+  </div>
+</form>
+{% endblock %}

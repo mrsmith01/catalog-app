@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<form action="{{url_for('newCategoryItem', category_id=category_id)}}" method="POST">
+  <div class="container">
+    <h1>New Category Item</h1>
+      <div class="form-group">
+        <p>Item:</p>
+          <input type="text" class="col-sm-3 col-sm-5" name='name'>
+          </br></br>
+          <p>Description:</p>
+          <input type="text" class="col-sm-3 col-sm-5" name='description'>
+          </br></br>
+          <input type="submit" value="Create Item">
+            </br></br>
+          <a href="{{url_for('showCategoryItems', category_id = category_id)}}">Cancel Create</a>
+      </div>
+  </div>
+</form>
+{% endblock %}

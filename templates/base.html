@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Amiko'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <title>My Catalog App</title>
+</head>
+<style>
+h1 {
+  font-family: 'Amiko'; font-size: 30px
+}
+p {
+  font-family: 'Arsenal'; font-size: 18px
+}
+</style>
+<body>
+
+  {% include 'includes/_navbar.html' %}
+  <div class="container">
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+
+    <ul class="list-unstyled">
+        {% for message in messages %}
+        <li><strong>{{message}}</strong></li>
+        {% endfor %}
+    </ul>
+  {% endif %}
+  {% endwith %}
+</div>
+            {% block body %}
+            {% endblock %}
+
+<script src ="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+
+</body>
+</html>

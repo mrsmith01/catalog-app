@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+<div class="container" >
+    <div class="row">
+      <div class="col-sm-4">
+    <h1>{{category.name}}</h1>
+  {% for items in items %}
+  <ul class="list-unstyled">
+      <li><a href='{{url_for('showCatalogItem', category_id=category.id, items_id = items.id)}}'>{{items.name}}</a></li>
+          </ul>
+          {% endfor %}
+        </div>
+      <div class="col-sm-8">
+        <h1>Latest Items</h1>
+
+      </div>
+  </div>
+</div>
+
+{% endblock%}

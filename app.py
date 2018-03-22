@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
+from flask import Flask, render_template, url_for, request, redirect, flash, jsonify
 
 from catalog_db_setup import Base, Users, Category, Items
 from sqlalchemy import create_engine, asc
@@ -45,7 +45,6 @@ def showLogout():
     return "This will be the logout function! </br></br> <a href='/home'>Home</a>"
 
 ########################### Google 3rd-party Authorization #####################
-
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # Validate state token
@@ -134,7 +133,7 @@ def gdisconnect():
         print 'Access token is None'
         response = make_response(json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return redirect('/')
     # Execute HTTP GET request to revoke current token.
     print 'In gdisconnect access token is %s', access_token
     print 'User name is:'
@@ -161,6 +160,10 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
+
+################################### FB Connect ################################
+
+
 ################################### Users ######################################
 
 def createUser(login_session):
@@ -174,7 +177,7 @@ def getUserInfo(users_id):
     users = session.query(Users).filter_by(id=users_id).one()
     return users
 
-def getUserInfo(email):
+def getUserID(email):
     try:
         users = session.query(Users).filter_by(email=email).one()
         return users.id
@@ -225,9 +228,11 @@ def newCatalog():
 # Edit Catalog
 @app.route('/catalog/<int:category_id>/edit/', methods=['GET','POST'])
 def editCatalog(category_id):
+    editedCategory = session.query(Category).filter_by(id=category_id).one()
     if 'username' not in login_session:
         return redirect('/login')
-    editedCategory = session.query(Category).filter_by(id=category_id).one()
+    if editedCategory.users_id != login_session['users_id']:
+        return "<script>function myFunction() {alert('You are not authorized to edit this Category!');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
             if request.form['name']:
                 editedCategory.name = request.form['name']
@@ -241,9 +246,11 @@ def editCatalog(category_id):
 # Delete Catalog
 @app.route('/catalog/<int:category_id>/delete/', methods=['GET','POST'])
 def deleteCatalog(category_id):
+    cattoDelete = session.query(Category).filter_by(id=category_id).one()
     if 'username' not in login_session:
         return redirect('/login')
-    cattoDelete = session.query(Category).filter_by(id=category_id).one()
+    if cattoDelete.users_id != login_session['users_id']:
+        return "<script>function myFunction() {alert('You are not authorized to delete this Category!');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(cattoDelete)
         session.commit()
@@ -259,11 +266,12 @@ def deleteCatalog(category_id):
 @app.route('/catalog/<int:category_id>/')
 def showCategoryItems(category_id):
     category = session.query(Category).filter_by(id=category_id).one()
+    creator = getUserInfo(category.users_id)
     items = session.query(Items).filter_by(category_id=category.id)
-    if 'username' not in login_session:
-        return render_template('publicitems.html', category=category, items=items)
+    if 'username' not in login_session or creator.id != login_session['users_id']:
+        return render_template('publicitems.html', category=category, items=items, creator=creator)
     else:
-        return render_template('items.html', category = category, items = items)
+        return render_template('items.html', category = category, items = items, creator=creator)
 
 
 
@@ -272,10 +280,11 @@ def showCategoryItems(category_id):
 def showCatalogItem(category_id,items_id):
     category = session.query(Category).filter_by(id=category_id).one()
     items = session.query(Items).filter_by(id=items_id).one()
-    if 'username' not in login_session:
-        return render_template('publicitem.html', category_id=category_id, items=items)
+    creator = getUserInfo(items.users_id)
+    if 'username' not in login_session or creator.id != login_session['users_id']:
+        return render_template('publicitem.html', category_id=category_id, items=items, creator=creator)
     else:
-        return render_template('item.html', category_id = category_id, items=items)
+        return render_template('item.html', category_id = category_id, items=items, creator=creator)
 
 
 ######################### Category Edits (PRIVATE) ############################
@@ -283,9 +292,9 @@ def showCatalogItem(category_id,items_id):
 # New Category item
 @app.route('/catalog/<int:category_id>/new/', methods=['GET', 'POST'])
 def newCategoryItem(category_id):
+    category = session.query(Category).filter_by(id=category_id).one()
     if 'username' not in login_session:
         return redirect('/login')
-    category = session.query(Category).filter_by(id=category_id).one()
     if request.method == 'POST':
             newItem = Items(name=request.form['name'],
             description=request.form['description'], category_id=category_id,
@@ -300,10 +309,12 @@ def newCategoryItem(category_id):
 # Edits Category Item
 @app.route('/catalog/<int:category_id>/<int:items_id>/edititem', methods=['GET', 'POST'])
 def editCategoryItem(category_id,items_id):
-    if 'username' not in login_session:
-        return redirect('/login')
         editedItems = session.query(Items).filter_by(id=items_id).one()
         category = session.query(Category).filter_by(id=category_id).one()
+        if 'username' not in login_session:
+            return redirect('/login')
+            if editedItems.users_id != login_session['users_id']:
+                return "<script>function myFunction() {alert('You are not authorized to edit this item!');}</script><body onload='myFunction()''>"
         if request.method == 'POST':
             if request.form['name']:
                 editedItems.name = request.form['name'],
@@ -319,10 +330,12 @@ def editCategoryItem(category_id,items_id):
 # Delete Category Item
 @app.route('/catalog/<int:category_id>/<int:items_id>/delete/', methods=['GET', 'POST'])
 def deleteCategoryItem(category_id,items_id):
-    if 'username' not in login_session:
-        return redirect('/login')
         category = session.query(Category).filter_by(id=category_id).one()
         itemToDelete = session.query(Items).filter_by(id=items_id).one()
+        if 'username' not in login_session:
+                return redirect('/login')
+                if itemtoDelete.users_id != login_session['users_id']:
+                    return "<script>function myFunction() {alert('You are not authorized to delete this item!');}</script><body onload='myFunction()''>"
         if request.method == 'POST':
             session.delete(itemToDelete)
             session.commit()

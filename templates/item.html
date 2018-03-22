@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+<div class="container">
+      <h1>{{items.name}}</h1>
+
+
+      <p>{{items.description}}</p>
+      <a href="{{url_for('editCategoryItem', category_id=category_id, items_id=items.id)}}">Edit</a>|
+      <a href="{{url_for('deleteCategoryItem', category_id=category_id, items_id=items.id)}}">Delete</a>|
+      <a href="{{url_for('showCategoryItems', category_id=category_id, items_id=items.id)}}">Cancel</a>
+</div>
+
+{% endblock %}

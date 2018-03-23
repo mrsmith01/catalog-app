@@ -346,6 +346,17 @@ def deleteCategoryItem(category_id,items_id):
 
 ######################### JSON API (PUBLIC) ###################################
 
+@app.route('/catalog/JSON/')
+def allCategoriesJSON():
+    category = session.query(Category).all()
+    return jsonify(Category=[category.serialize for category in category])
+
+
+@app.route('/catalog/<int:category_id>/items/JSON')
+def showCategoryItemsJSON(category_id):
+    category = session.query(Category).filter_by(id=category_id).one()
+    items = session.query(Items).filter_by(category_id=category_id).all()
+    return jsonify(Items=[items.serialize for items in items])
 
 
 ###############################################################################

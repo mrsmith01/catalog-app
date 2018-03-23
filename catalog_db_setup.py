@@ -15,6 +15,14 @@ class Users(Base):
     picture = Column(String(250))
     timestamp = datetime
 
+    @property
+    def serialize(self):
+        return {
+            'id' : self.id,
+            'email' : self.email,
+            'name' : self.name,
+            'picture' : self.picture,
+        }
 
 
 class Category(Base):
@@ -25,6 +33,14 @@ class Category(Base):
     timestamp = datetime
     users_id = Column(Integer,ForeignKey('users.id'))
     users = relationship(Users)
+
+    @property
+    def serialize(self):
+        return {
+        'id' : self.id,
+        'name' : self.name,
+        }
+
 
 
 class Items(Base):
@@ -38,6 +54,15 @@ class Items(Base):
     category = relationship(Category)
     users_id = Column(Integer, ForeignKey('users.id'))
     users = relationship(Users)
+
+    @property
+    def serialize(self):
+        return {
+        'id' : self.id,
+        'name' : self.name,
+        'description' : self.description,
+
+    }
 
 
 engine = create_engine('sqlite:///catalogappusers.db')
